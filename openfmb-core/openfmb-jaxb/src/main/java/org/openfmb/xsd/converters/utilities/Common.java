@@ -1,0 +1,43 @@
+/*
+ * Licensed to Duke Energy Corporation (www.duke-energy.com) under one or more
+ * contributor license agreements. See the NOTICE file distributed with this
+ * work for additional information regarding copyright ownership. Duke Energy
+ * Corporation licenses this file to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+package org.openfmb.xsd.converters.utilities;
+
+import java.util.GregorianCalendar;
+
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+public class Common
+{
+	/**
+	 * Converts a long value representing milliseconds into a XMLGregorianCalendar object.
+	 * 
+	 * @param millis Milliseconds
+	 * 
+	 * @return XMLGregorianCalendar object
+	 * @throws DatatypeConfigurationException 
+	 */
+	public static XMLGregorianCalendar LongToXmlGregorianCalendar(long millis)
+		throws DatatypeConfigurationException
+	{
+		GregorianCalendar c = new GregorianCalendar();
+		c.setTimeInMillis(millis);
+		return DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
+	}
+	
+}
