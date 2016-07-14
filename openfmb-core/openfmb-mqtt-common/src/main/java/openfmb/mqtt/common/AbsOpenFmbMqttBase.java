@@ -158,7 +158,7 @@ public abstract class AbsOpenFmbMqttBase implements MqttCallback, Runnable
 	{
 		StandardPBEStringEncryptor encryptor = new StandardPBEStringEncryptor();
 		encryptor.setAlgorithm("PBEWithMD5AndDES");
-		String encryptionKey = System.getenv("OPENFMB_BRIDGE_PROPERTY_ENCRYPTION_KEY");
+		String encryptionKey = System.getenv("OPENFMB_PROPERTY_ENCRYPTION_KEY");
 		if (encryptionKey == null)
 		{
 			encryptor.setPassword(this.getClass().getSimpleName());
