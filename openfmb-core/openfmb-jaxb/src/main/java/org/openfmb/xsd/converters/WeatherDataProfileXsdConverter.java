@@ -25,12 +25,19 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.transform.stream.StreamSource;
 
-import org.eclipse.persistence.jaxb.MarshallerProperties;
-import org.eclipse.persistence.jaxb.UnmarshallerProperties;
+import org.openfmb.xsd._2015._12.openfmb.commonmodule.UnitMultiplierKind;
+import org.openfmb.xsd._2015._12.openfmb.commonmodule.UnitSymbolKind;
 import org.openfmb.xsd._2015._12.openfmb.weathermodule.ObjectFactory;
 import org.openfmb.xsd._2015._12.openfmb.weathermodule.WeatherDataProfile;
+import org.openfmb.xsd.converters.gson.UnitMultiplierKindConverter;
+import org.openfmb.xsd.converters.gson.UnitSymbolKindConverter;
+import org.openfmb.xsd.converters.gson.XMLGregorianCalendarConverter;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 /**
  * This class handles all of the conversions between the XML message
@@ -42,6 +49,30 @@ import org.openfmb.xsd._2015._12.openfmb.weathermodule.WeatherDataProfile;
  */
 public class WeatherDataProfileXsdConverter
 {
+	private static Gson toJsonConverter = null;
+	private static Gson toJsonPrettyPrintConverter = null;
+	private static Gson fromJsonConverter = null;
+	
+	static
+	{
+		GsonBuilder toGsonBuilder = new GsonBuilder()
+	            .registerTypeAdapter(XMLGregorianCalendar.class, new XMLGregorianCalendarConverter.Serializer())
+		        .registerTypeAdapter(UnitMultiplierKind.class, new UnitMultiplierKindConverter.Serializer())
+		        .registerTypeAdapter(UnitSymbolKind.class, new UnitSymbolKindConverter.Serializer())
+		        ;
+		
+		toJsonConverter = toGsonBuilder.create();
+		toJsonPrettyPrintConverter = toGsonBuilder.setPrettyPrinting().create();
+		
+		GsonBuilder fromGsonBuilder = new GsonBuilder()
+	            .registerTypeAdapter(XMLGregorianCalendar.class, new XMLGregorianCalendarConverter.Deserializer())
+		        .registerTypeAdapter(UnitMultiplierKind.class, new UnitMultiplierKindConverter.Deserializer())
+		        .registerTypeAdapter(UnitSymbolKind.class, new UnitSymbolKindConverter.Deserializer())
+		        ;
+		
+		fromJsonConverter = fromGsonBuilder.create();
+	}
+	
 	private WeatherDataProfileXsdConverter()
 	{
 		// Just prevent anyone from creating an instance of this class.
@@ -287,7 +318,7 @@ public class WeatherDataProfileXsdConverter
 	 * @return String containing the corresponding JSON representation of the WeatherDataProfile
 	 */
 	public static String convertPojoToJson(WeatherDataProfile pojo)
-			throws DatatypeConfigurationException, JAXBException
+			throws DatatypeConfigurationException
 	{
 		return convertPojoToJson(pojo, false);
 	}
@@ -302,19 +333,16 @@ public class WeatherDataProfileXsdConverter
 	 * @return String containing the corresponding JSON representation of the WeatherDataProfile
 	 */
 	public static String convertPojoToJson(WeatherDataProfile pojo, boolean formatJson)
-			throws DatatypeConfigurationException, JAXBException
+			throws DatatypeConfigurationException
 	{
-		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		
-		JAXBContext jaxbContext = JAXBContext.newInstance(WeatherDataProfile.class);
-		Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-		jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, formatJson);
-		jaxbMarshaller.setProperty(MarshallerProperties.MEDIA_TYPE, "application/json");
-		jaxbMarshaller.setProperty(MarshallerProperties.JSON_INCLUDE_ROOT, true);
-		
-		jaxbMarshaller.marshal(pojo, stream);
-		
-		return new String(stream.toByteArray());
+		if (formatJson)
+		{
+			return WeatherDataProfileXsdConverter.toJsonPrettyPrintConverter.toJson(pojo);
+		}
+		else
+		{
+			return WeatherDataProfileXsdConverter.toJsonConverter.toJson(pojo);
+		}
 	}
 	
 	/**
@@ -361,22 +389,10 @@ public class WeatherDataProfileXsdConverter
 	 * @return POJO WeatherDataProfile object
 	 * 
 	 * @throws DatatypeConfigurationException
-	 * @throws JAXBException
 	 */
 	public static WeatherDataProfile convertJsonToPojo(String json)
-			throws DatatypeConfigurationException, JAXBException
+			throws DatatypeConfigurationException
 	{
-		StringReader reader = new StringReader(json);
-		
-		JAXBContext jaxbContext = JAXBContext.newInstance(WeatherDataProfile.class);
-		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-		jaxbUnmarshaller.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
-		jaxbUnmarshaller.setProperty(UnmarshallerProperties.JSON_INCLUDE_ROOT, false);
-		
-		JAXBElement<WeatherDataProfile> root =
-				jaxbUnmarshaller.unmarshal(new StreamSource(reader),
-										   WeatherDataProfile.class);
-		
-		return root.getValue();
+		return WeatherDataProfileXsdConverter.fromJsonConverter.fromJson(json, WeatherDataProfile.class);
 	}
 }

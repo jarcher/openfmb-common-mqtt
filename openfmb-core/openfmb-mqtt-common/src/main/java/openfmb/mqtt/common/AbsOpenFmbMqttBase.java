@@ -68,16 +68,31 @@ public abstract class AbsOpenFmbMqttBase implements MqttCallback, Runnable
 	protected boolean mqttIsFormattedOutput = false;
 	protected boolean mqttIsCleanSession = false;
 	
+	protected String propertiesFilePath = null;
+	
+	private void setPropertiesFilePath()
+	{
+		propertiesFilePath = System.getenv("OPENFMB_PROPERTIES_FILE_PATH");
+		if (propertiesFilePath == null || propertiesFilePath.length() == 0)
+		{
+			propertiesFilePath = "";
+		}
+		
+	}
+	
 	/**
 	 * This method should be called first so the log4j logger can be created.
 	 */
 	protected void initializeLogger()
 	{
+		setPropertiesFilePath();
+		
 		// Initial the logger objects.
 		logger = Logger.getLogger(this.getClass().getSimpleName());
 		
-		// Load the properties for the log4j loggers. 
-	    PropertyConfigurator.configure(this.getClass().getSimpleName() + ".log4j.properties");
+		// Load the properties for the log4j loggers.
+		
+	    PropertyConfigurator.configure(propertiesFilePath + this.getClass().getSimpleName() + ".log4j.properties");
 	}
 	
 //	/**
@@ -156,6 +171,8 @@ public abstract class AbsOpenFmbMqttBase implements MqttCallback, Runnable
 	 */
 	private boolean loadMqttStartupProperties()
 	{
+		setPropertiesFilePath();
+		
 		StandardPBEStringEncryptor encryptor = new StandardPBEStringEncryptor();
 		encryptor.setAlgorithm("PBEWithMD5AndDES");
 		String encryptionKey = System.getenv("OPENFMB_PROPERTY_ENCRYPTION_KEY");
@@ -175,7 +192,7 @@ public abstract class AbsOpenFmbMqttBase implements MqttCallback, Runnable
 		try
 		{
 			logger.debug("Loading application startup properties...");
-			prop.load(new FileInputStream(this.getClass().getSimpleName() + ".properties"));
+			prop.load(new FileInputStream(propertiesFilePath + this.getClass().getSimpleName() + ".properties"));
 			
 			mqttClientId = prop.getProperty("mqttClientId");
 			if (mqttClientId == null || mqttClientId.length() == 0)

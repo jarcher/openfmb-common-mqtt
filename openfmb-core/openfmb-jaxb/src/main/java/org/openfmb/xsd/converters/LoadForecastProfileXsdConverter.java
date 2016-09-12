@@ -25,12 +25,15 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.transform.stream.StreamSource;
 
-import org.eclipse.persistence.jaxb.MarshallerProperties;
-import org.eclipse.persistence.jaxb.UnmarshallerProperties;
 import org.openfmb.xsd._2015._12.openfmb.loadmodule.LoadForecastProfile;
 import org.openfmb.xsd._2015._12.openfmb.loadmodule.ObjectFactory;
+import org.openfmb.xsd.converters.gson.XMLGregorianCalendarConverter;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 /**
  * This class handles all of the conversions between the XML message
@@ -42,6 +45,26 @@ import org.openfmb.xsd._2015._12.openfmb.loadmodule.ObjectFactory;
  */
 public class LoadForecastProfileXsdConverter
 {
+	private static Gson toJsonConverter = null;
+	private static Gson toJsonPrettyPrintConverter = null;
+	private static Gson fromJsonConverter = null;
+	
+	static
+	{
+		GsonBuilder toGsonBuilder = new GsonBuilder()
+	            .registerTypeAdapter(XMLGregorianCalendar.class, new XMLGregorianCalendarConverter.Serializer())
+		        ;
+		
+		toJsonConverter = toGsonBuilder.create();
+		toJsonPrettyPrintConverter = toGsonBuilder.setPrettyPrinting().create();
+		
+		GsonBuilder fromGsonBuilder = new GsonBuilder()
+	            .registerTypeAdapter(XMLGregorianCalendar.class, new XMLGregorianCalendarConverter.Deserializer())
+		        ;
+		
+		fromJsonConverter = fromGsonBuilder.create();
+	}
+	
 	private LoadForecastProfileXsdConverter()
 	{
 		// Just prevent anyone from creating an instance of this class.
@@ -287,7 +310,7 @@ public class LoadForecastProfileXsdConverter
 	 * @return String containing the corresponding JSON representation of the LoadForecastProfile
 	 */
 	public static String convertPojoToJson(LoadForecastProfile pojo)
-			throws DatatypeConfigurationException, JAXBException
+			throws DatatypeConfigurationException
 	{
 		return convertPojoToJson(pojo, false);
 	}
@@ -302,19 +325,16 @@ public class LoadForecastProfileXsdConverter
 	 * @return String containing the corresponding JSON representation of the LoadForecastProfile
 	 */
 	public static String convertPojoToJson(LoadForecastProfile pojo, boolean formatJson)
-			throws DatatypeConfigurationException, JAXBException
+			throws DatatypeConfigurationException
 	{
-		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		
-		JAXBContext jaxbContext = JAXBContext.newInstance(LoadForecastProfile.class);
-		Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-		jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, formatJson);
-		jaxbMarshaller.setProperty(MarshallerProperties.MEDIA_TYPE, "application/json");
-		jaxbMarshaller.setProperty(MarshallerProperties.JSON_INCLUDE_ROOT, true);
-		
-		jaxbMarshaller.marshal(pojo, stream);
-		
-		return new String(stream.toByteArray());
+		if (formatJson)
+		{
+			return LoadForecastProfileXsdConverter.toJsonPrettyPrintConverter.toJson(pojo);
+		}
+		else
+		{
+			return LoadForecastProfileXsdConverter.toJsonConverter.toJson(pojo);
+		}
 	}
 	
 	/**
@@ -361,22 +381,10 @@ public class LoadForecastProfileXsdConverter
 	 * @return POJO LoadForecastProfile object
 	 * 
 	 * @throws DatatypeConfigurationException
-	 * @throws JAXBException
 	 */
 	public static LoadForecastProfile convertJsonToPojo(String json)
-			throws DatatypeConfigurationException, JAXBException
+			throws DatatypeConfigurationException
 	{
-		StringReader reader = new StringReader(json);
-		
-		JAXBContext jaxbContext = JAXBContext.newInstance(LoadForecastProfile.class);
-		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-		jaxbUnmarshaller.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
-		jaxbUnmarshaller.setProperty(UnmarshallerProperties.JSON_INCLUDE_ROOT, false);
-		
-		JAXBElement<LoadForecastProfile> root =
-				jaxbUnmarshaller.unmarshal(new StreamSource(reader),
-										   LoadForecastProfile.class);
-		
-		return root.getValue();
+		return LoadForecastProfileXsdConverter.fromJsonConverter.fromJson(json, LoadForecastProfile.class);
 	}
 }

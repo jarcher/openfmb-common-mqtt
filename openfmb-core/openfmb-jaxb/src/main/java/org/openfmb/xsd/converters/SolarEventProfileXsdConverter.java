@@ -25,12 +25,17 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.transform.stream.StreamSource;
 
-import org.eclipse.persistence.jaxb.MarshallerProperties;
-import org.eclipse.persistence.jaxb.UnmarshallerProperties;
+import org.openfmb.xsd._2015._12.openfmb.commonmodule.SwitchStatusKind;
 import org.openfmb.xsd._2015._12.openfmb.solarmodule.ObjectFactory;
 import org.openfmb.xsd._2015._12.openfmb.solarmodule.SolarEventProfile;
+import org.openfmb.xsd.converters.gson.SwitchStatusKindConverter;
+import org.openfmb.xsd.converters.gson.XMLGregorianCalendarConverter;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 /**
  * This class handles all of the conversions between the XML message
@@ -42,6 +47,28 @@ import org.openfmb.xsd._2015._12.openfmb.solarmodule.SolarEventProfile;
  */
 public class SolarEventProfileXsdConverter
 {
+	private static Gson toJsonConverter = null;
+	private static Gson toJsonPrettyPrintConverter = null;
+	private static Gson fromJsonConverter = null;
+	
+	static
+	{
+		GsonBuilder toGsonBuilder = new GsonBuilder()
+	            .registerTypeAdapter(XMLGregorianCalendar.class, new XMLGregorianCalendarConverter.Serializer())
+		        .registerTypeAdapter(SwitchStatusKind.class, new SwitchStatusKindConverter.Serializer())
+		        ;
+		
+		toJsonConverter = toGsonBuilder.create();
+		toJsonPrettyPrintConverter = toGsonBuilder.setPrettyPrinting().create();
+		
+		GsonBuilder fromGsonBuilder = new GsonBuilder()
+	            .registerTypeAdapter(XMLGregorianCalendar.class, new XMLGregorianCalendarConverter.Deserializer())
+		        .registerTypeAdapter(SwitchStatusKind.class, new SwitchStatusKindConverter.Deserializer())
+		        ;
+		
+		fromJsonConverter = fromGsonBuilder.create();
+	}
+	
 	private SolarEventProfileXsdConverter()
 	{
 		// Just prevent anyone from creating an instance of this class.
@@ -287,7 +314,7 @@ public class SolarEventProfileXsdConverter
 	 * @return String containing the corresponding JSON representation of the SolarEventProfile
 	 */
 	public static String convertPojoToJson(SolarEventProfile pojo)
-			throws DatatypeConfigurationException, JAXBException
+			throws DatatypeConfigurationException
 	{
 		return convertPojoToJson(pojo, false);
 	}
@@ -302,19 +329,16 @@ public class SolarEventProfileXsdConverter
 	 * @return String containing the corresponding JSON representation of the SolarEventProfile
 	 */
 	public static String convertPojoToJson(SolarEventProfile pojo, boolean formatJson)
-			throws DatatypeConfigurationException, JAXBException
+			throws DatatypeConfigurationException
 	{
-		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		
-		JAXBContext jaxbContext = JAXBContext.newInstance(SolarEventProfile.class);
-		Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-		jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, formatJson);
-		jaxbMarshaller.setProperty(MarshallerProperties.MEDIA_TYPE, "application/json");
-		jaxbMarshaller.setProperty(MarshallerProperties.JSON_INCLUDE_ROOT, true);
-		
-		jaxbMarshaller.marshal(pojo, stream);
-		
-		return new String(stream.toByteArray());
+		if (formatJson)
+		{
+			return SolarEventProfileXsdConverter.toJsonPrettyPrintConverter.toJson(pojo);
+		}
+		else
+		{
+			return SolarEventProfileXsdConverter.toJsonConverter.toJson(pojo);
+		}
 	}
 	
 	/**
@@ -361,22 +385,10 @@ public class SolarEventProfileXsdConverter
 	 * @return POJO SolarEventProfile object
 	 * 
 	 * @throws DatatypeConfigurationException
-	 * @throws JAXBException
 	 */
 	public static SolarEventProfile convertJsonToPojo(String json)
-			throws DatatypeConfigurationException, JAXBException
+			throws DatatypeConfigurationException
 	{
-		StringReader reader = new StringReader(json);
-		
-		JAXBContext jaxbContext = JAXBContext.newInstance(SolarEventProfile.class);
-		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-		jaxbUnmarshaller.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
-		jaxbUnmarshaller.setProperty(UnmarshallerProperties.JSON_INCLUDE_ROOT, false);
-		
-		JAXBElement<SolarEventProfile> root =
-				jaxbUnmarshaller.unmarshal(new StreamSource(reader),
-										   SolarEventProfile.class);
-		
-		return root.getValue();
+		return SolarEventProfileXsdConverter.fromJsonConverter.fromJson(json, SolarEventProfile.class);
 	}
 }

@@ -25,12 +25,23 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.transform.stream.StreamSource;
 
-import org.eclipse.persistence.jaxb.MarshallerProperties;
-import org.eclipse.persistence.jaxb.UnmarshallerProperties;
 import org.openfmb.xsd._2015._12.openfmb.batterymodule.BatteryReadingProfile;
 import org.openfmb.xsd._2015._12.openfmb.batterymodule.ObjectFactory;
+import org.openfmb.xsd._2015._12.openfmb.commonmodule.FlowDirectionKind;
+import org.openfmb.xsd._2015._12.openfmb.commonmodule.PhaseCodeKind;
+import org.openfmb.xsd._2015._12.openfmb.commonmodule.UnitMultiplierKind;
+import org.openfmb.xsd._2015._12.openfmb.commonmodule.UnitSymbolKind;
+import org.openfmb.xsd.converters.gson.FlowDirectionKindConverter;
+import org.openfmb.xsd.converters.gson.PhaseCodeKindConverter;
+import org.openfmb.xsd.converters.gson.UnitMultiplierKindConverter;
+import org.openfmb.xsd.converters.gson.UnitSymbolKindConverter;
+import org.openfmb.xsd.converters.gson.XMLGregorianCalendarConverter;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 /**
  * This class handles all of the conversions between the XML message
@@ -42,6 +53,34 @@ import org.openfmb.xsd._2015._12.openfmb.batterymodule.ObjectFactory;
  */
 public class BatteryReadingProfileXsdConverter
 {
+	private static Gson toJsonConverter = null;
+	private static Gson toJsonPrettyPrintConverter = null;
+	private static Gson fromJsonConverter = null;
+	
+	static
+	{
+		GsonBuilder toGsonBuilder = new GsonBuilder()
+	            .registerTypeAdapter(XMLGregorianCalendar.class, new XMLGregorianCalendarConverter.Serializer())
+		        .registerTypeAdapter(UnitMultiplierKind.class, new UnitMultiplierKindConverter.Serializer())
+		        .registerTypeAdapter(UnitSymbolKind.class, new UnitSymbolKindConverter.Serializer())
+		        .registerTypeAdapter(PhaseCodeKind.class, new PhaseCodeKindConverter.Serializer())
+		        .registerTypeAdapter(FlowDirectionKind.class, new FlowDirectionKindConverter.Serializer())
+		        ;
+		
+		toJsonConverter = toGsonBuilder.create();
+		toJsonPrettyPrintConverter = toGsonBuilder.setPrettyPrinting().create();
+		
+		GsonBuilder fromGsonBuilder = new GsonBuilder()
+	            .registerTypeAdapter(XMLGregorianCalendar.class, new XMLGregorianCalendarConverter.Deserializer())
+		        .registerTypeAdapter(UnitMultiplierKind.class, new UnitMultiplierKindConverter.Deserializer())
+		        .registerTypeAdapter(UnitSymbolKind.class, new UnitSymbolKindConverter.Deserializer())
+		        .registerTypeAdapter(PhaseCodeKind.class, new PhaseCodeKindConverter.Deserializer())
+		        .registerTypeAdapter(FlowDirectionKind.class, new FlowDirectionKindConverter.Deserializer())
+		        ;
+		
+		fromJsonConverter = fromGsonBuilder.create();
+	}
+	
 	private BatteryReadingProfileXsdConverter()
 	{
 		// Just prevent anyone from creating an instance of this class.
@@ -302,19 +341,16 @@ public class BatteryReadingProfileXsdConverter
 	 * @return String containing the corresponding JSON representation of the BatteryReadingProfile
 	 */
 	public static String convertPojoToJson(BatteryReadingProfile pojo, boolean formatJson)
-			throws DatatypeConfigurationException, JAXBException
+			throws DatatypeConfigurationException
 	{
-		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		
-		JAXBContext jaxbContext = JAXBContext.newInstance(BatteryReadingProfile.class);
-		Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-		jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, formatJson);
-		jaxbMarshaller.setProperty(MarshallerProperties.MEDIA_TYPE, "application/json");
-		jaxbMarshaller.setProperty(MarshallerProperties.JSON_INCLUDE_ROOT, true);
-		
-		jaxbMarshaller.marshal(pojo, stream);
-		
-		return new String(stream.toByteArray());
+		if (formatJson)
+		{
+			return BatteryReadingProfileXsdConverter.toJsonPrettyPrintConverter.toJson(pojo);
+		}
+		else
+		{
+			return BatteryReadingProfileXsdConverter.toJsonConverter.toJson(pojo);
+		}
 	}
 	
 	/**
@@ -364,19 +400,8 @@ public class BatteryReadingProfileXsdConverter
 	 * @throws JAXBException
 	 */
 	public static BatteryReadingProfile convertJsonToPojo(String json)
-			throws DatatypeConfigurationException, JAXBException
+			throws DatatypeConfigurationException
 	{
-		StringReader reader = new StringReader(json);
-		
-		JAXBContext jaxbContext = JAXBContext.newInstance(BatteryReadingProfile.class);
-		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-		jaxbUnmarshaller.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
-		jaxbUnmarshaller.setProperty(UnmarshallerProperties.JSON_INCLUDE_ROOT, false);
-		
-		JAXBElement<BatteryReadingProfile> root =
-				jaxbUnmarshaller.unmarshal(new StreamSource(reader),
-										   BatteryReadingProfile.class);
-		
-		return root.getValue();
+		return BatteryReadingProfileXsdConverter.fromJsonConverter.fromJson(json, BatteryReadingProfile.class);
 	}
 }

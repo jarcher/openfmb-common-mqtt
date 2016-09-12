@@ -25,12 +25,15 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.transform.stream.StreamSource;
 
-import org.eclipse.persistence.jaxb.MarshallerProperties;
-import org.eclipse.persistence.jaxb.UnmarshallerProperties;
 import org.openfmb.xsd._2016._04.openfmb.shuntmodule.ObjectFactory;
 import org.openfmb.xsd._2016._04.openfmb.shuntmodule.ShuntControlProfile;
+import org.openfmb.xsd.converters.gson.XMLGregorianCalendarConverter;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 /**
  * This class handles all of the conversions between the XML message
@@ -42,6 +45,26 @@ import org.openfmb.xsd._2016._04.openfmb.shuntmodule.ShuntControlProfile;
  */
 public class ShuntControlProfileXsdConverter
 {
+	private static Gson toJsonConverter = null;
+	private static Gson toJsonPrettyPrintConverter = null;
+	private static Gson fromJsonConverter = null;
+	
+	static
+	{
+		GsonBuilder toGsonBuilder = new GsonBuilder()
+	            .registerTypeAdapter(XMLGregorianCalendar.class, new XMLGregorianCalendarConverter.Serializer())
+		        ;
+		
+		toJsonConverter = toGsonBuilder.create();
+		toJsonPrettyPrintConverter = toGsonBuilder.setPrettyPrinting().create();
+		
+		GsonBuilder fromGsonBuilder = new GsonBuilder()
+	            .registerTypeAdapter(XMLGregorianCalendar.class, new XMLGregorianCalendarConverter.Deserializer())
+		        ;
+		
+		fromJsonConverter = fromGsonBuilder.create();
+	}
+	
 	private ShuntControlProfileXsdConverter()
 	{
 		// Just prevent anyone from creating an instance of this class.
@@ -287,7 +310,7 @@ public class ShuntControlProfileXsdConverter
 	 * @return String containing the corresponding JSON representation of the ShuntControlProfile
 	 */
 	public static String convertPojoToJson(ShuntControlProfile pojo)
-			throws DatatypeConfigurationException, JAXBException
+			throws DatatypeConfigurationException
 	{
 		return convertPojoToJson(pojo, false);
 	}
@@ -302,19 +325,16 @@ public class ShuntControlProfileXsdConverter
 	 * @return String containing the corresponding JSON representation of the ShuntControlProfile
 	 */
 	public static String convertPojoToJson(ShuntControlProfile pojo, boolean formatJson)
-			throws DatatypeConfigurationException, JAXBException
+			throws DatatypeConfigurationException
 	{
-		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		
-		JAXBContext jaxbContext = JAXBContext.newInstance(ShuntControlProfile.class);
-		Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-		jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, formatJson);
-		jaxbMarshaller.setProperty(MarshallerProperties.MEDIA_TYPE, "application/json");
-		jaxbMarshaller.setProperty(MarshallerProperties.JSON_INCLUDE_ROOT, true);
-		
-		jaxbMarshaller.marshal(pojo, stream);
-		
-		return new String(stream.toByteArray());
+		if (formatJson)
+		{
+			return ShuntControlProfileXsdConverter.toJsonPrettyPrintConverter.toJson(pojo);
+		}
+		else
+		{
+			return ShuntControlProfileXsdConverter.toJsonConverter.toJson(pojo);
+		}
 	}
 	
 	/**
@@ -361,22 +381,10 @@ public class ShuntControlProfileXsdConverter
 	 * @return POJO ShuntControlProfile object
 	 * 
 	 * @throws DatatypeConfigurationException
-	 * @throws JAXBException
 	 */
 	public static ShuntControlProfile convertJsonToPojo(String json)
-			throws DatatypeConfigurationException, JAXBException
+			throws DatatypeConfigurationException
 	{
-		StringReader reader = new StringReader(json);
-		
-		JAXBContext jaxbContext = JAXBContext.newInstance(ShuntControlProfile.class);
-		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-		jaxbUnmarshaller.setProperty(UnmarshallerProperties.MEDIA_TYPE, "application/json");
-		jaxbUnmarshaller.setProperty(UnmarshallerProperties.JSON_INCLUDE_ROOT, false);
-		
-		JAXBElement<ShuntControlProfile> root =
-				jaxbUnmarshaller.unmarshal(new StreamSource(reader),
-										   ShuntControlProfile.class);
-		
-		return root.getValue();
+		return ShuntControlProfileXsdConverter.fromJsonConverter.fromJson(json, ShuntControlProfile.class);
 	}
 }
