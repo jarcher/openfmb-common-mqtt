@@ -22,6 +22,7 @@ import java.util.Random;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 
+import org.jasypt.properties.EncryptableProperties;
 import org.openfmb.xsd._2015._12.openfmb.commonmodule.DateTimeInterval;
 import org.openfmb.xsd._2015._12.openfmb.commonmodule.FlowDirectionKind;
 import org.openfmb.xsd._2015._12.openfmb.commonmodule.Meter;
@@ -59,8 +60,16 @@ import openfmb.resourcemodule.abstracts.AbsResourceReadingProfileMqttPublisher;
  */
 public class LoadPublisher extends AbsResourceReadingProfileMqttPublisher {
 
-	private int [] LoadTable = {25,30,25,30,20,15,10,50,120,130,140,145,150,135,130,140,150,135,125,120,90,85,95,45};
-
+	private int [] kwLoadTable = null;
+	
+	private String logicalDeviceID = null;
+	private String meterMRID = null;
+	private String meterName = null;
+	private String meterDesc = null;
+	private String psrMRID = null;
+	private String psrName = null;
+	private String psrDesc = null;
+	
 	/**
 	 * The retrieveResourceReadingProfile populates the ResourceReadingProfile
 	 * data structure. It consists of reading, reading type, meter, and power
@@ -103,8 +112,8 @@ public class LoadPublisher extends AbsResourceReadingProfileMqttPublisher {
 		int hourOfDay = cal.get(Calendar.HOUR_OF_DAY);
 		int minute = cal.get(Calendar.MINUTE);
 		int nexthour = (hourOfDay +1) % 24;
-		float kw = LoadTable[hourOfDay];
-		kw = kw + Math.abs(LoadTable[nexthour] - LoadTable[hourOfDay]) * (float)minute / 60f;
+		float kw = kwLoadTable[hourOfDay];
+		kw = kw + Math.abs(kwLoadTable[nexthour] - kwLoadTable[hourOfDay]) * (float)minute / 60f;
 				
 		// Add jitter to the KW value +/- 1.00
 		Random rn = new Random();
@@ -114,20 +123,31 @@ public class LoadPublisher extends AbsResourceReadingProfileMqttPublisher {
 		profile.getReadings().add(read);
 				
 		// Finish up the Meter reading profile
-		profile.setLogicalDeviceID("DEMO.MGRID.RESOURCE.1");
-				
-		// Load up the Meter and the Power System Resource
-		Meter meter = new Meter();
-		meter.setDescription("Load1");
-		meter.setMRID("DEMO.MGRID.RESOURCE.1");
-		meter.setName("Load1");
-		PowerSystemResource power = new PowerSystemResource();
-		power.setDescription("Load1");
-		power.setMRID("DEMO.MGRID.RESOURCE.1");
-		power.setName("Load1");
-		profile.setMeter(meter);
+		profile.setLogicalDeviceID(logicalDeviceID);
 		profile.setTimestamp(timestamp.getStart());
 				
+		// Load up the Meter and the Power System Resource
+		if (meterMRID != null && meterName != null && meterDesc != null)
+		{
+			Meter meter = new Meter();
+			
+			meter.setDescription(meterDesc);
+			meter.setMRID(meterMRID);
+			meter.setName(meterName);
+			
+			if (psrMRID != null && psrName != null && psrDesc != null)
+			{
+				PowerSystemResource power = new PowerSystemResource();
+				power.setDescription(psrDesc);
+				power.setMRID(psrMRID);
+				power.setName(psrName);
+				
+				meter.setPowerSystemResource(power);
+			}
+			
+			profile.setMeter(meter);
+		}
+		
 		return profile;
 						
 	}
@@ -142,5 +162,116 @@ public class LoadPublisher extends AbsResourceReadingProfileMqttPublisher {
 		load.run();
 
 	}
-
+	
+	@Override
+	protected boolean loadAppConfigProperties(EncryptableProperties prop)
+	{
+		if (!super.loadAppConfigProperties(prop))
+		{
+			return false;
+		}
+		
+		// Start loading custom properties after this point.
+		
+		// #####################################################
+		// BEGIN - 24 hour KW load table
+		// #####################################################
+		String csvLoadTable = prop.getProperty("kwLoadTable");
+		if (csvLoadTable == null || csvLoadTable.length() == 0)
+		{
+			logger.error("Load table is missing from the properties file.");
+			return false;
+		}
+		else
+		{
+			try
+			{
+				String[] tempLoadTable = csvLoadTable.split(",");
+				if (tempLoadTable.length != 24)
+				{
+					logger.error("Load table property must contain exactly 24 elements to represent 24 hours per day.");
+					return false;
+				}
+				
+				kwLoadTable = new int[tempLoadTable.length];
+				
+				for (int i = 0; i < tempLoadTable.length; i++)
+				{
+					try
+					{
+						kwLoadTable[i] = Integer.parseInt(tempLoadTable[i]);
+					}
+					catch (NumberFormatException e)
+					{
+						logger.error("Load table value is invalid in position " + i + ".");
+						return false;
+					}
+				}
+				
+			}
+			catch (Exception e)
+			{
+				logger.error("There was a problem reading the load table vales from the properties file.", e);
+				return false;
+			}
+		}
+		// #####################################################
+		// END - 24 hour KW load table
+		// #####################################################
+		
+		logicalDeviceID = prop.getProperty("logicalDeviceID");
+		if (logicalDeviceID == null || logicalDeviceID.length() == 0)
+		{
+			logger.error("logicalDeviceID value missing in properties file.");
+			return false;
+		}
+		
+		meterMRID = prop.getProperty("meterMRID");
+		if (meterMRID != null && meterMRID.length() == 0)
+		{
+			meterMRID = null;
+		}
+		
+		meterDesc = prop.getProperty("meterDesc");
+		if (meterDesc != null && meterDesc.length() == 0)
+		{
+			meterDesc = null;
+		}
+		
+		meterName = prop.getProperty("meterName");
+		if (meterName != null && meterName.length() == 0)
+		{
+			meterName = null;
+		}
+		
+		psrMRID = prop.getProperty("psrMRID");
+		if (psrMRID != null && psrMRID.length() == 0)
+		{
+			psrMRID = null;;
+		}
+		
+		psrDesc = prop.getProperty("psrDesc");
+		if (psrDesc != null && psrDesc.length() == 0)
+		{
+			psrDesc = null;
+		}
+		
+		psrName = prop.getProperty("psrName");
+		if (psrName != null && psrName.length() == 0)
+		{
+			psrName = null;
+		}
+		
+		logger.info(this.getClass().getSimpleName() + " specific properties:");
+		logger.info("  kwLoadTable = " + csvLoadTable);
+		logger.info("  logicalDeviceID = " + logicalDeviceID);
+		logger.info("  meterMRID       = " + (meterMRID == null ? "<blank>" : meterMRID));
+		logger.info("  meterName       = " + (meterName == null ? "<blank>" : meterName));
+		logger.info("  meterDesc       = " + (meterDesc == null ? "<blank>" : meterDesc));
+		logger.info("  psrMRID         = " + (psrMRID == null ? "<blank>" : psrMRID));
+		logger.info("  psrName         = " + (psrName == null ? "<blank>" : psrName));
+		logger.info("  psrDesc         = " + (psrDesc == null ? "<blank>" : psrDesc));
+		
+		return true;
+	}
 }
