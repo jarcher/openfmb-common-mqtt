@@ -20,6 +20,7 @@ package openfmb.mqtt.common;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Random;
 
 import javax.net.ssl.SSLHandshakeException;
 
@@ -196,10 +197,14 @@ public abstract class AbsOpenFmbMqttBase implements MqttCallback, Runnable
 			logger.debug("Loading application startup properties...");
 			prop.load(new FileInputStream(propertiesFilePath + this.getClass().getSimpleName() + ".properties"));
 			
+			boolean isRandomClientId = false;
 			mqttClientId = prop.getProperty("mqttClientId");
 			if (mqttClientId == null || mqttClientId.length() == 0)
 			{
-				throw new Exception("Invalid mqttClientId.");
+				isRandomClientId = true;
+				Random r = new Random();
+				mqttClientId = this.getClass().getSimpleName() + "-" + r.nextInt(Integer.MAX_VALUE);
+				logger.warn("Random MQTT client id generated. MQTT clean session will be forced to true.");
 			}
 			
 			mqttBrokerUrl = prop.getProperty("mqttBrokerUrl");
@@ -250,6 +255,7 @@ public abstract class AbsOpenFmbMqttBase implements MqttCallback, Runnable
 						case "TLSv1":
 						case "TLSv1.1":
 							logger.warn(mqttSslProtocol + " is an older SSL protocol standard. Not recommended but continuing...");
+							break;
 						case "TLSv1.2":
 							// These are valid
 							break;
@@ -300,13 +306,20 @@ public abstract class AbsOpenFmbMqttBase implements MqttCallback, Runnable
 				mqttIsFormattedOutput = false;
 			}
 			
-			try
+			if (isRandomClientId)
 			{
-				mqttIsCleanSession = Boolean.parseBoolean(prop.getProperty("mqttIsCleanSession"));
+				mqttIsCleanSession = true;
 			}
-			catch (Exception e)
+			else
 			{
-				mqttIsCleanSession = false;
+				try
+				{
+					mqttIsCleanSession = Boolean.parseBoolean(prop.getProperty("mqttIsCleanSession"));
+				}
+				catch (Exception e)
+				{
+					mqttIsCleanSession = false;
+				}
 			}
 			
 			logger.debug("Loading application startup properties...FINISHED.");
@@ -386,12 +399,25 @@ public abstract class AbsOpenFmbMqttBase implements MqttCallback, Runnable
 			
 			if (isMqttBrokerSsl)
 			{
-				mqttClientOptions.setSocketFactory(
-						SslUtil.getSslSocketFactory(
-								mqttCaCertPath,
-								mqttClientCertPath,
-								mqttClientKeyPath,
-								mqttClientKeyPassword));
+				if (mqttSslProtocol != null)
+				{
+					mqttClientOptions.setSocketFactory(
+							SslUtil.getSslSocketFactory(
+									mqttCaCertPath,
+									mqttClientCertPath,
+									mqttClientKeyPath,
+									mqttClientKeyPassword,
+									mqttSslProtocol));
+				}
+				else
+				{
+					mqttClientOptions.setSocketFactory(
+							SslUtil.getSslSocketFactory(
+									mqttCaCertPath,
+									mqttClientCertPath,
+									mqttClientKeyPath,
+									mqttClientKeyPassword));
+				}
 			}
 		}
 		
