@@ -15,7 +15,7 @@ java -cp
 ## Building
 
 ```shell
-git clone https://github.com/openfmb/openfmb-adapters.git
+git clone https://github.com/openfmb/openfmb-common-mqtt.git
 cd openfmb-adapters
 mvn clean install
 ```
@@ -32,8 +32,8 @@ The build jar is put in the target directory and needs to be moved to the main d
 If you'd like to contribute, please fork the repository and use a feature
 branch. Pull requests are warmly welcome.
 
-Please review the [CONTRIBUTING](https://github.com/openfmb/openfmb-hmi/blob/master/CONTRIBUTING.md) file. 
+Please review the [CONTRIBUTING](https://github.com/openfmb/openfmb-common-mqtt/blob/master/CONTRIBUTING.md) file. 
 
 # License
 
-See the [APACHE_FILE_HEADER](https://github.com/openfmb/openfmb-adapters/blob/master/APACHE_FILE_HEADER) file for more info.
+See the [APACHE_FILE_HEADER](https://github.com/openfmb/openfmb-common-mqtt/blob/master/APACHE_FILE_HEADER) file for more info.
