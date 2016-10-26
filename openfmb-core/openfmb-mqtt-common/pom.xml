@@ -6,7 +6,7 @@
 
   <parent>
     <groupId>com.dukeenergy.eto.openfmb</groupId>
-    <artifactId>openfmb-core</artifactId>
+    <artifactId>openfmb-common-mqtt</artifactId>
     <version>1.0.0</version>
     <relativePath>../</relativePath>
   </parent>
@@ -26,6 +26,58 @@
               </configuration>
           </plugin>
       </plugins>
+      <pluginManagement>
+      	<plugins>
+      		<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+      		<plugin>
+      			<groupId>org.eclipse.m2e</groupId>
+      			<artifactId>lifecycle-mapping</artifactId>
+      			<version>1.0.0</version>
+      			<configuration>
+      				<lifecycleMappingMetadata>
+      					<pluginExecutions>
+      						<pluginExecution>
+      							<pluginExecutionFilter>
+      								<groupId>
+      									com.mycila.maven-license-plugin
+      								</groupId>
+      								<artifactId>
+      									maven-license-plugin
+      								</artifactId>
+      								<versionRange>
+      									[1.9.0,)
+      								</versionRange>
+      								<goals>
+      									<goal>format</goal>
+      								</goals>
+      							</pluginExecutionFilter>
+      							<action>
+      								<execute/>
+      							</action>
+      						</pluginExecution>
+      					</pluginExecutions>
+      				</lifecycleMappingMetadata>
+      			</configuration>
+      		</plugin>
+            <plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+		  		<configuration>
+       				<descriptorRefs>
+           				<descriptorRef>jar-with-dependencies</descriptorRef>
+       				</descriptorRefs>
+		 		</configuration>
+   				<executions>
+     				<execution>
+      		     		<id>make-assembly</id>
+        		   		<phase>package</phase>
+        	   			<goals>
+        	       			<goal>single</goal>
+       		    		</goals>
+       				</execution>
+   				</executions>
+	    	</plugin> 
+      	</plugins>
+      </pluginManagement>
   </build>
 
   <dependencies>
