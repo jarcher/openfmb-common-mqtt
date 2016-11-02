@@ -1,4 +1,4 @@
-![Logo of the Project](https://github.com/openfmb/dtech-demo-2016/blob/master/img/openfmb-tm-black_reduced_100.png)
+ava -cp openfmb-loadpublisher-1.0-jar-with-dependencies.jar ![Logo of the Project](https://github.com/openfmb/dtech-demo-2016/blob/master/img/openfmb-tm-black_reduced_100.png)
 
 # Description
 
@@ -6,11 +6,9 @@ This repository is the OpenFMB interface layer that creates java objects for pro
 
 # Installing / Getting started
 
-{starting notes} NOTE: This project is used in the Dtech Demo.  Refer to [Wiki](https://github.com/openfmb/dtech-demo-2016/wiki) for information on DTech Demo. 
+This project is used in the Dtech Demo and builds the MQTT bindings for the Loadpubliser and other simulation that want to leverage MQTT.  Refer to [Wiki](https://github.com/openfmb/dtech-demo-2016/wiki) for information on DTech Demo. 
 
-```shell
-java -cp openfmb-loadpublisher-1.0-jar-with-dependencies.jar com.dukeenergy.eto.openfmb.LoadPublisher
-```
+
 
 ## Building
 
