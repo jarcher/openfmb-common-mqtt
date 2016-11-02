@@ -1,4 +1,4 @@
-ava -cp openfmb-loadpublisher-1.0-jar-with-dependencies.jar ![Logo of the Project](https://github.com/openfmb/dtech-demo-2016/blob/master/img/openfmb-tm-black_reduced_100.png)
+![Logo of the Project](https://github.com/openfmb/dtech-demo-2016/blob/master/img/openfmb-tm-black_reduced_100.png)
 
 # Description
 
