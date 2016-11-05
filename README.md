@@ -8,7 +8,9 @@ This repository is the OpenFMB interface layer that creates java objects for pro
 
 This project is used in the Dtech Demo and builds the MQTT bindings for the Loadpubliser and other simulation that want to leverage MQTT.  Refer to [Wiki](https://github.com/openfmb/dtech-demo-2016/wiki) for information on DTech Demo. 
 
+## Dependencies
 
+Please refer to the Wiki pages for the [Demonstration](https://github.com/openfmb/turnkey-dtech-demo-2016/wiki/Simulation-Demonstration) and [Prerequisites](https://github.com/openfmb/turnkey-dtech-demo-2016/wiki/Simulation-Prerequisites) for the demo and these cooresponding repository projects. 
 
 ## Building
 
